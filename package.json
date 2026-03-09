@@ -1,0 +1,22 @@
+{
+  "name": "hireclaw",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI employee platform — hire AI agents that answer emails, write code, close deals, and handle support 24/7",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json,css,md}\"",
+    "test": "npm run test -w server && npm run test -w client"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

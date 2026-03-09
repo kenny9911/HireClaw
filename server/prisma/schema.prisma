@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum AgentType {
+  EMAIL
+  CODE
+  SALES
+  SUPPORT
+}
+
+enum AgentStatus {
+  ACTIVE
+  PAUSED
+  OFFLINE
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(USER)
+  agents    Agent[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Agent {
+  id            String        @id @default(uuid())
+  name          String
+  type          AgentType
+  status        AgentStatus   @default(OFFLINE)
+  config        Json          @default("{}")
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  conversations Conversation[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Conversation {
+  id        String             @id @default(uuid())
+  agent     Agent              @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agentId   String
+  messages  Json               @default("[]")
+  status    ConversationStatus @default(OPEN)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}

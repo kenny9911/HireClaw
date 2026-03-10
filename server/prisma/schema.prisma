@@ -13,10 +13,18 @@ enum UserRole {
 }
 
 enum AgentType {
-  EMAIL
-  CODE
-  SALES
-  SUPPORT
+  SOFTWARE_ENGINEER
+  CTO
+  SALES_DEV_REP
+  SUPPORT_AGENT
+  RESEARCH_ANALYST
+  PROJECT_MANAGER
+  CONTENT_WRITER
+  DEVOPS_ENGINEER
+  HR_MANAGER
+  BOOKKEEPER
+  DESIGN_LEAD
+  GROWTH_MARKETER
 }
 
 enum AgentStatus {
@@ -31,15 +39,55 @@ enum ConversationStatus {
   ARCHIVED
 }
 
+enum LLMModel {
+  GPT_4O
+  CLAUDE
+  GEMINI
+  DEEPSEEK
+  LLAMA
+}
+
+enum Channel {
+  SLACK
+  DISCORD
+  TELEGRAM
+  WHATSAPP
+  EMAIL
+}
+
+enum SubscriptionTier {
+  PRO
+  TEAM
+  BUSINESS
+  AGENCY
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  TRIALING
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+}
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole @default(USER)
-  agents    Agent[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String?
+  name         String
+  googleId     String?       @unique
+  avatarUrl    String?
+  role         UserRole      @default(USER)
+  agents         Agent[]
+  subscription   Subscription?
+  passwordResets PasswordReset[]
+  createdAt      DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Agent {
@@ -48,6 +96,12 @@ model Agent {
   type          AgentType
   status        AgentStatus   @default(OFFLINE)
   config        Json          @default("{}")
+  model         LLMModel      @default(GPT_4O)
+  channel       Channel       @default(EMAIL)
+  instructions  String?       @db.Text
+  brandVoice    String?       @db.Text
+  approvalGate  Boolean       @default(false)
+  taskCount     Int           @default(0)
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   conversations Conversation[]
@@ -63,4 +117,37 @@ model Conversation {
   status    ConversationStatus @default(OPEN)
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
+}
+
+model Subscription {
+  id               String             @id @default(uuid())
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String             @unique
+  tier             SubscriptionTier   @default(PRO)
+  billingCycle     BillingCycle       @default(MONTHLY)
+  status           SubscriptionStatus @default(ACTIVE)
+  agentLimit       Int                @default(3)
+  currentPeriodEnd DateTime
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  company   String?
+  message   String   @db.Text
+  type      String   @default("sales")
+  createdAt DateTime @default(now())
 }
